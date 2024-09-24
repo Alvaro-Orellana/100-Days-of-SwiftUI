@@ -59,7 +59,7 @@ struct ContentView: View {
     }
     
     var total: Double {
-        self.billAmount + (self.billAmount / 100 * Double(self.tipPercentage))
+        self.billAmount + (billAmount / 100 * Double(tipPercentage))
     }
     
     var totalPerPerson: Double {
