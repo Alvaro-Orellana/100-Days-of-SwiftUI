@@ -15,3 +15,4 @@ struct Day_19App: App {
         }
     }
 }
+
