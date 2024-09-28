@@ -13,9 +13,7 @@ struct ContentView: View {
     @State var numberOfPeople = 2
     @State var tipPercentage = 0
     @FocusState var amountTextFieldIsFocused: Bool
-    
-    let tipPercentages = [0, 10, 25, 50]
-    
+        
     var body: some View {
         NavigationStack {
             Form {
@@ -44,6 +42,7 @@ struct ContentView: View {
                 }
                 Section("Total amount") {
                     Text(total, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                        .foregroundStyle(tipPercentage == 0 && billAmount != 0 ? .red : .black )
                 }
             }
             .navigationTitle("We Split")

@@ -57,9 +57,7 @@ struct ContentView: View {
                         Button {
                             flagTapped(selectedFlag: country)
                         } label: {
-                            Image(country)
-                                .clipShape(.capsule)
-                                .shadow(radius: 5)
+                            FlagImage(imageName: country)
                         }
                     }
                 }
@@ -71,8 +69,9 @@ struct ContentView: View {
                 Spacer()
                 
                 Text("Score is \(score)")
-                    .font(.title2.bold())
-                    .foregroundStyle(.white)
+                    .titleStyle()
+//                    .font(.title2.bold())
+//                    .foregroundStyle(.white)
             }
             .padding()
         }
@@ -114,6 +113,30 @@ struct ContentView: View {
         score = 0
         numberOfQuestions = Self.numberOfQuestions
         newQuestion()
+    }
+}
+
+struct FlagImage: View {
+    let imageName: String
+    
+    var body: some View {
+        Image(imageName)
+            .clipShape(.capsule)
+            .shadow(radius: 5)
+    }
+}
+
+struct TitleStyle: ViewModifier{
+    func body(content: Content) -> some View {
+        content
+            .font(.largeTitle)
+            .foregroundStyle(.blue)
+    }
+}
+
+extension View where Self == Text {
+    func titleStyle() -> some View {
+        self.modifier(TitleStyle())
     }
 }
 
