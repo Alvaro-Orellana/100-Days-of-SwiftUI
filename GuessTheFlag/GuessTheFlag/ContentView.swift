@@ -77,7 +77,7 @@ struct ContentView: View {
             .padding()
         }
         .alert(alertTitle, isPresented: $presentAlert) {
-            Button("Ok", action: gameIsOver ? restartGame : nextQuestion)
+            Button("Ok", action: gameIsOver ? restartGame : newQuestion)
         } message: {
             Text(alertMesage)
         }
@@ -105,7 +105,7 @@ struct ContentView: View {
         }
     }
     
-    private func nextQuestion() {
+    private func newQuestion() {
         countriesToShow = Self.countries.shuffled().prefix(upTo: Self.numberOfFlagsPerChoice)
         correctAnswer = countriesToShow.randomElement()!
     }
@@ -113,7 +113,7 @@ struct ContentView: View {
     private func restartGame() {
         score = 0
         numberOfQuestions = Self.numberOfQuestions
-        nextQuestion()
+        newQuestion()
     }
 }
 
