@@ -9,60 +9,78 @@ import SwiftUI
 
 struct ContentView: View {
     
-    static let numberOfQuestions = 10
-    
-    @State var score = 0
+    @State private var numberOfQuestions = 10
+    @State private var score = 0
+    @State var gameIsOver: Bool = false
     
     var body: some View {
-        let appsMove = PlayOptions.allCases.randomElement()!
-        let playerShouldWin = Bool.random()
-        
         ZStack {
-            LinearGradient(colors: [.purple, .indigo, .blue,], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [.purple, .indigo, .blue,], startPoint: .topLeading, endPoint: .bottomTrailing)
                 .ignoresSafeArea()
-                
+            
             VStack(spacing: 40) {
-                Text("The app chose \(appsMove.rawValue)")
+                let appChoice = PlayOptions.allCases.randomElement()!
+                let playerShouldWin = Bool.random()
+                
+                Text("The app chose \(appsChoice.rawValue)")
                     .font(.system(size: 35))
                 
                 Text(playerShouldWin ? "You should win this round" : "You should loose this round")
                     .font(.title3)
                 
-                ForEach(PlayOptions.allCases) { option in
+                ForEach(PlayOptions.allCases) { choice in
                     Button {
-                        playGame(playerChoice: option, appsChoice: appsMove, playerShouldWin: playerShouldWin)
+                        playGame(playerChoice: choice, appsChoice: appChoice, playerShouldWin: playerShouldWin)
                     } label: {
-                        Text(option.rawValue)
+                        Text(choice.rawValue)
                             .font(.system(size: 80))
                     }
-              }
+                }
                 Spacer()
                 
-                Text("Your score: \(score)")
-                    .font(.title)
+                HStack {
+                    Text("Your score: \(score)")
+                    Text("Remaining turns: \(numberOfQuestions)")
+                }
+                .font(.system(size: 22))
             }
             .foregroundStyle(.white)
             .padding(.vertical)
+            .alert("Game over", isPresented: $gameIsOver) {
+                Button("Ok", role: .cancel, action: newGame)
+            }
         }
     }
     
     private func playGame(playerChoice: PlayOptions, appsChoice: PlayOptions, playerShouldWin: Bool) {
-        let playerWon = playerWon(playerChoice: playerChoice, appsChoice: appsChoice)
-        if playerWon && playerShouldWin {
-            score += 1
-        }
-        if !playerWon && !playerShouldWin {
-            score += 1
-        }
+        let gameResult = gameResult(playerChoice: playerChoice, appsChoice: appsChoice)
         
+        let playerWonCorrectly = gameResult == .playerWin  && playerShouldWin
+        let playerLostCorrectly = gameResult == .playerLost && !playerShouldWin
+        
+        if playerWonCorrectly || playerLostCorrectly {
+            score += 1
+        } else {
+            score -= 1
+        }
+        numberOfQuestions -= 1
+        if numberOfQuestions == 0 {
+            gameIsOver = true
+        }
     }
     
-    // Returns true if player won, and false if app won
-    private func playerWon(playerChoice: PlayOptions, appsChoice: PlayOptions) -> Bool {
+    private func gameResult(playerChoice: PlayOptions, appsChoice: PlayOptions) -> PlayerGameResult {
         switch (playerChoice, appsChoice) {
-        case (.rock, .scissors), (.paper, .rock), (.scissors, .paper): true
-        default: false
+        case (.rock, .scissors), (.paper, .rock), (.scissors, .paper): .playerWin
+        case (.rock, .rock), (.scissors, .scissors), (.paper, .paper): .tie
+        default: .playerLost
         }
+    }
+    
+    private func newGame() {
+        score = 0
+        numberOfQuestions = 10
+        gameIsOver = false
     }
 }
 
@@ -72,6 +90,12 @@ enum PlayOptions: String, CaseIterable, Identifiable {
     case scissors = "✌️"
     
     var id: Self { self }
+}
+
+enum PlayerGameResult {
+    case playerWin
+    case playerLost
+    case tie
 }
 
 #Preview {
