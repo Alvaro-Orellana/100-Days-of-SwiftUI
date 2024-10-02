@@ -15,57 +15,35 @@ struct ContentView: View {
     @State private var coffeeAmount = 1
     @State private var alertTitle = ""
     @State private var alertMessage = ""
-    @State private var showAlert = false
 
     var body: some View {
         NavigationStack {
             Form {
-                Section {
+                Section("When do you want to wake up") {
                     DatePicker("Please enter a time", selection: $wakeUpTime, displayedComponents: .hourAndMinute)
                         .labelsHidden()
-                } header: {
-                    Text("When do you want to wake up")
                 }
-                Section {
+                Section("Desired amount of sleep") {
                     Stepper("\(sleepAmount.formatted()) hours", value: $sleepAmount, in: 2...10, step: 0.25)
-                } header: {
-                    Text("Desired amount of sleep")
                 }
-                Section {
-//                    Stepper("^[\(coffeeAmount) cup of coffee](inflect: true)", value: $coffeeAmount, in: 1...20)
+                Section("Daily coffee intake") {
                     Picker("Cups of coffee per day", selection: $coffeeAmount) {
                         ForEach(1...20, id: \.self) { number in
                             Text("\(number)")
                         }
                     }
-                    Text(coffeeAmount.description)
-                } header: {
-                    Text("Daily coffee intake")
                 }
-                
-                Section {
-                    Text(alertTitle)
+                Section(alertTitle) {
                     Text(alertMessage)
                         .font(.largeTitle.weight(.heavy))
                 }
             }
-            .font(.headline)
             .padding()
+            .font(.headline)
             .navigationTitle("Better Rest")
-            .onChange(of: sleepAmount) {
-                calculateBedTime()
-            }
-            .onChange(of: coffeeAmount) {
-                calculateBedTime()
-            }
-            .onChange(of: wakeUpTime) {
-                calculateBedTime()
-            }
-            .onAppear {
-                calculateBedTime()
-            }
-            
-
+            .onChange(of: sleepAmount, calculateBedTime)
+            .onChange(of: coffeeAmount, calculateBedTime)
+            .onChange(of: wakeUpTime, calculateBedTime)
         }
     }
     
@@ -90,7 +68,6 @@ struct ContentView: View {
             alertTitle = "Error"
             alertMessage = "There was an error either loading the model or making the predicction"
         }
-        showAlert = true
     }
 }
 
