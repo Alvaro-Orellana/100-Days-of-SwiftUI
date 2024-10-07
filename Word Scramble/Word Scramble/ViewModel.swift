@@ -5,15 +5,18 @@
 //  Created by Alvaro Orellana on 07-10-24.
 //
 
-import Foundation
+import SwiftUI
 
 class ViewModel: ObservableObject {
     
-    @Published private var words: [String] = []
-    @Published var correctWords: [String] = []
-    @Published var rootWord: String = ""
+    @Published private(set) var correctWords: [String] = []
+    @Published private(set) var rootWord: String = ""
+    @Published private(set) var score: Int = 0
     
-    enum ValidationResult {
+    private var words: [String] = []
+    private let minimumNumberOfCharacters = 3
+    
+    enum WordValidationResult {
         case valid
         case invalid(title: String, message: String)
     }
@@ -29,9 +32,9 @@ class ViewModel: ObservableObject {
         fatalError("Could not load start.txt from bundle")
     }
     
-    func submitWord(_ inputWord: String) -> ValidationResult {
+    func submit(_ word: String) -> WordValidationResult {
         // Sanitize the answer
-        let answer = inputWord.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        let answer = word.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard isNotEmpty(word: answer) else {
             return .invalid(title: "Empty word", message: "write at least something bro")
@@ -42,8 +45,11 @@ class ViewModel: ObservableObject {
         guard isOriginal(word: answer) else {
             return .invalid(title: "Same word", message: "You cant just use the same word you know?")
         }
+        guard answerIsNotShort(word: answer) else {
+            return .invalid(title: "Word to short", message: "Your word should have at least \(minimumNumberOfCharacters) letters")
+        }
         guard isPossible(word: answer) else {
-            return .invalid(title: "Word is not possible", message: "You can't spell \(answer) that word from \(rootWord)")
+            return .invalid(title: "Word is not possible", message: "You can't spell \(answer) from \(rootWord)")
         }
         guard isReal(word: answer) else {
             return .invalid(title: "Word not recognized", message: "You can't just make up words you know?")
@@ -51,8 +57,14 @@ class ViewModel: ObservableObject {
         
         // Answer passed all validations
         correctWords.insert(answer, at: 0)
+        score += answer.count // The more letters an answer has the bigger the score
         rootWord = words.removeRandomElement()
         return .valid
+    }
+    
+    func changeWord() {
+        words.append(rootWord)
+        rootWord = words.removeRandomElement()
     }
 }
 
@@ -69,6 +81,10 @@ private extension ViewModel {
     
     func isOriginal(word: String) -> Bool {
         rootWord != word
+    }
+    
+    func answerIsNotShort(word: String) -> Bool {
+        word.count >= minimumNumberOfCharacters
     }
     
     func isPossible(word: String) -> Bool {
