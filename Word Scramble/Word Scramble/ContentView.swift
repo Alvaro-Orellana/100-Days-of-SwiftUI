@@ -38,7 +38,6 @@ struct ContentView: View {
                     .background(.blue, in: RoundedRectangle(cornerRadius: 20.0))
             }
             .navigationTitle(viewmodel.rootWord)
-            .onAppear(perform: viewmodel.loadText)
             .alert(alertTitle, isPresented: $showAlert, actions: {}, message: { Text(alertMessage) })
             .onSubmit {
                 switch viewmodel.submit(inputWord) {
@@ -53,7 +52,6 @@ struct ContentView: View {
             }
         }
     }
-    
     
     private func showAlert(_ title: String, _ message: String) {
         alertTitle = title

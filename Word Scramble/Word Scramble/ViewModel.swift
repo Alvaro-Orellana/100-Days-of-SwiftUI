@@ -9,11 +9,10 @@ import SwiftUI
 
 class ViewModel: ObservableObject {
     
-    @Published private(set) var correctWords: [String] = []
-    @Published private(set) var rootWord: String = ""
-    @Published private(set) var score: Int = 0
-    
-    private var words: [String] = []
+    @Published private(set) var score: Int
+    @Published private(set) var correctWords: [String]
+    @Published private(set) var rootWord: String
+    private var words: [String]
     private let minimumNumberOfCharacters = 3
     
     enum WordValidationResult {
@@ -21,19 +20,24 @@ class ViewModel: ObservableObject {
         case invalid(title: String, message: String)
     }
     
-    func loadText() {
+    init() {
+        score = 0
+        correctWords = []
+        words = Self.loadTextFile().components(separatedBy: "\n")
+        rootWord = words.removeRandomElement()
+    }
+    
+    static func loadTextFile() -> String {
         if let textFileURL = Bundle.main.url(forResource: "start", withExtension: "txt") {
             if let textFile = try? String(contentsOf: textFileURL, encoding: .ascii) {
-                words = textFile.components(separatedBy: "\n")
-                rootWord = words.removeRandomElement()
-                return
+                return textFile
             }
         }
         fatalError("Could not load start.txt from bundle")
     }
     
     func submit(_ word: String) -> WordValidationResult {
-        // Sanitize the answer
+        // Sanitize the input
         let answer = word.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard isNotEmpty(word: answer) else {
@@ -45,7 +49,7 @@ class ViewModel: ObservableObject {
         guard isOriginal(word: answer) else {
             return .invalid(title: "Same word", message: "You cant just use the same word you know?")
         }
-        guard answerIsNotShort(word: answer) else {
+        guard isNotTooShort(word: answer) else {
             return .invalid(title: "Word to short", message: "Your word should have at least \(minimumNumberOfCharacters) letters")
         }
         guard isPossible(word: answer) else {
@@ -55,7 +59,7 @@ class ViewModel: ObservableObject {
             return .invalid(title: "Word not recognized", message: "You can't just make up words you know?")
         }
         
-        // Answer passed all validations
+        // Answer passed all validations. Update properties accordingly
         correctWords.insert(answer, at: 0)
         score += answer.count // The more letters an answer has the bigger the score
         rootWord = words.removeRandomElement()
@@ -83,7 +87,7 @@ private extension ViewModel {
         rootWord != word
     }
     
-    func answerIsNotShort(word: String) -> Bool {
+    func isNotTooShort(word: String) -> Bool {
         word.count >= minimumNumberOfCharacters
     }
     
