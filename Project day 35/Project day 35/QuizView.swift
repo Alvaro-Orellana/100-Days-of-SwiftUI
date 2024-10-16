@@ -16,7 +16,6 @@ struct QuizView: View {
     @State var score: Int = 0
     @State var randomNumber: Int = Int.random(in: 2...10)
     @State var answer: String = ""
-    
     @State var alertTitle: String = ""
     @State var alertMessage = ""
     @State var isPresented: Bool = false
