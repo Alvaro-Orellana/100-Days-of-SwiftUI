@@ -9,8 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
     
-    @State private var multiplicationTable = 1
-    @State private var numberOfQuestions: Int = 0
+    @State private var multiplicationTable = 2
+    @State private var numberOfQuestions: Int = 5
     let numberOfQuestionsOptions = [5, 10, 20]
     
     var body: some View {
@@ -36,10 +36,9 @@ struct ContentView: View {
                 NavigationLink(destination: QuizView(multiplicationTable: multiplicationTable, numberOfQuestions: numberOfQuestions)) {
                     Button("Play", action: {})
                         .buttonStyle(.borderedProminent)
+                        .frame(alignment: .bottomTrailing)
                     
                 }
-                
-                
             }
             .padding()
             .navigationTitle("Learn your tables")

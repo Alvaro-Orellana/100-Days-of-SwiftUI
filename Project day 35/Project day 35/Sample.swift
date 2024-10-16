@@ -8,12 +8,12 @@
 import SwiftUI
 
 struct Sample: View {
-   @State var isGreen = true
+    @State var isGreen = true
     @State var scale = CGSize(width: 1, height: 1)
     
     var body: some View {
         Circle()
-            .fill(isGreen ? Color.green : Color.red)
+            .fill(isGreen ? .green : .red)
             .frame(width: 200, height: 200)
             .animation(.default, value: isGreen)
             .onTapGesture {
@@ -28,16 +28,32 @@ struct Sample: View {
                     .opacity(isGreen ? 1 : 0)
                     .scaleEffect(scale)
                     .animation(.easeInOut.repeatForever(autoreverses: false).speed(0.2), value: scale)
-                    
             }
-            .overlay(alignment: .center) {
-                Text("e")
-                    .font(.largeTitle)
-                    
-            }
+    }
+}
+
+struct Checkmark: Shape {
+    func path(in rect: CGRect) -> Path {
+        Path { p in
+            p.move(to: .init(x: rect.minX, y: rect.midY))
+            p.addLine(to: .init(x: rect.minX + rect.size.width / 2,
+                                y: rect.maxY))
+            p.addLine(to: .init(x: rect.maxX, y: rect.minY))
+        
+        }
+    }
+    
+    func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
+        let p = proposal.replacingUnspecifiedDimensions()
+        let length = min(p.width, p.height)
+        return .init(width: length, height: length)
     }
 }
 
 #Preview {
     Sample()
+        .overlay {
+            Checkmark()
+                .stroke(lineWidth: 3)
+        }
 }
