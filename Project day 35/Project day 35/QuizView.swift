@@ -10,28 +10,23 @@ import SwiftUI
 
 struct QuizView: View {
     
-    let multiplicationTable: Int
-    let numberOfQuestionsCopy: Int
-    @State var numberOfQuestions: Int
-    @State var score: Int = 0
-    @State var randomNumber: Int = Int.random(in: 2...10)
-    @State var answer: String = ""
-    @State var alertTitle: String = ""
-    @State var alertMessage = ""
-    @State var isPresented: Bool = false
-    @State var gameIsOver = false
-    
+    @Environment(\.dismiss) var dismiss
+    @State private var userAnswer: String = ""
+    @State private var alertTitle: String = ""
+    @State private var alertMessage = ""
+    @State private var isPresented: Bool = false
+    @State private var gameIsFinished: Bool = false
+    private var viewmodel: QuizViewModel
     
     init(multiplicationTable: Int, numberOfQuestions: Int) {
-        self.multiplicationTable = multiplicationTable
-        self.numberOfQuestionsCopy = numberOfQuestions
-        self.numberOfQuestions = numberOfQuestions
+        viewmodel = QuizViewModel(multiplicationTable: multiplicationTable, numberOfQuestions: numberOfQuestions)
     }
     
     var body: some View {
         VStack {
+            Text("Your are doing the table of \(viewmodel.multiplicationTable)")
             Spacer()
-            Text("\(multiplicationTable) x \(randomNumber) = ?")
+            Text(viewmodel.currentQuestion)
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .overlay {
@@ -40,45 +35,46 @@ struct QuizView: View {
                         .opacity(0.25)
                         .frame(width: 150, height: 100)
                 }
-            TextField("Enter your asnwer", text: $answer)
+            TextField("Enter your asnwer", text: $userAnswer)
                 .textFieldStyle(.roundedBorder)
                 .frame(height: 80)
                 .keyboardType(.numberPad)
         
             Spacer()
             HStack(spacing: 50) {
-                Text("Score: \(score)")
-                Text("\(numberOfQuestions) questions left")
+                Text("Score: \(viewmodel.score)")
+                Text("\(viewmodel.questionsLeft) questions left")
             }
             .font(.headline)
         }
         .onSubmit(submitAnswer)
         .alert(alertTitle, isPresented: $isPresented, actions: {}, message: { Text(alertMessage) })
+        .alert(alertTitle, isPresented: $gameIsFinished) {
+            Button("Ok", action: { dismiss() })
+        } message: {
+            Text(alertMessage)
+        }
+
     }
     
-    func submitAnswer() {
-        guard let number = Int(answer) else {
-            presentAlert(title: "Invalid input", message: "\(answer) is not a number. type again")
-            return
-        }
-        validateAnswer(number)
-        numberOfQuestions -= 1
-        answer = ""
-        randomNumber = Int.random(in: 2...10)
+    private func submitAnswer() {
+        switch viewmodel.submitAnswer(userAnswer) {
+        case .invalidInput:
+            presentAlert(title: "Invalid input", message: "\(userAnswer) is not a number. type again")
         
-        guard numberOfQuestions > 0 else {
-            presentAlert(title: "Game over", message: "You got \(score) out of \(numberOfQuestionsCopy) questions correct")
-            return
+        case .incorrect:
+            presentAlert(title: "Incorrect", message: "The correct answer was \(viewmodel.correctAnswer)")
+            viewmodel.nextQuestion()
+        
+        case .correct:
+            presentAlert(title: "Correct", message: "Score: \(viewmodel.score)/\(viewmodel.numberOfQuestions)")
+            viewmodel.nextQuestion()
+        
+        case .gameFinished:
+            
+            presentFinishedAlert(title: "Game over", message: "You got \(viewmodel.score) out of \(viewmodel.numberOfQuestions) questions correct")
         }
-    }
-    
-    private func validateAnswer(_ userAnswer: Int) {
-        if userAnswer == multiplicationTable * randomNumber {
-            score += 1
-            presentAlert(title: "Correct", message: "Score: \(score) out of \(numberOfQuestionsCopy) questions correct")
-        } else {
-            presentAlert(title: "Incorrect", message: "The correct answer was \(multiplicationTable * randomNumber)")
-        }
+        userAnswer = ""
     }
     
     private func presentAlert(title: String, message: String) {
@@ -86,8 +82,13 @@ struct QuizView: View {
         alertMessage = message
         isPresented = true
     }
+    
+    private func presentFinishedAlert(title: String, message: String) {
+        alertTitle = title
+        alertMessage = message
+        gameIsFinished = true
+    }
 }
-
 
 
 
