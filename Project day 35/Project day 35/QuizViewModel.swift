@@ -8,7 +8,8 @@
 import Foundation
 
 
-@Observable class QuizViewModel {
+@Observable
+class QuizViewModel {
     
     let multiplicationTable: Int
     private let questions: [QuestionModel]

@@ -10,12 +10,14 @@ import SwiftUI
 
 struct QuizView: View {
     
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.dismiss) var dismiss: DismissAction
+    
     @State private var userAnswer: String = ""
     @State private var alertTitle: String = ""
     @State private var alertMessage = ""
     @State private var isPresented: Bool = false
     @State private var gameIsFinished: Bool = false
+    
     private var viewmodel: QuizViewModel
     
     init(multiplicationTable: Int, numberOfQuestions: Int) {
@@ -24,28 +26,16 @@ struct QuizView: View {
     
     var body: some View {
         VStack {
+            Spacer()
             Text("Your are doing the table of \(viewmodel.multiplicationTable)")
             Spacer()
-            Text(viewmodel.currentQuestion)
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .overlay {
-                    Ellipse()
-                        .fill(.blue)
-                        .opacity(0.25)
-                        .frame(width: 150, height: 100)
-                }
+            questionView
             TextField("Enter your asnwer", text: $userAnswer)
                 .textFieldStyle(.roundedBorder)
                 .frame(height: 80)
                 .keyboardType(.numberPad)
-        
             Spacer()
-            HStack(spacing: 50) {
-                Text("Score: \(viewmodel.score)")
-                Text("\(viewmodel.questionsLeft) questions left")
-            }
-            .font(.headline)
+            scoreAndQuestionsView
         }
         .onSubmit(submitAnswer)
         .alert(alertTitle, isPresented: $isPresented, actions: {}, message: { Text(alertMessage) })
@@ -55,6 +45,26 @@ struct QuizView: View {
             Text(alertMessage)
         }
 
+    }
+    
+    private var questionView: some View {
+        Text(viewmodel.currentQuestion)
+            .font(.largeTitle)
+            .fontWeight(.bold)
+            .overlay {
+                Ellipse()
+                    .fill(.blue)
+                    .opacity(0.25)
+                    .frame(width: 150, height: 100)
+            }
+    }
+    
+    private var scoreAndQuestionsView: some View {
+        HStack(spacing: 50) {
+            Text("Score: \(viewmodel.score)")
+            Text("\(viewmodel.questionsLeft) questions left")
+        }
+        .font(.headline)
     }
     
     private func submitAnswer() {
@@ -71,7 +81,6 @@ struct QuizView: View {
             viewmodel.nextQuestion()
         
         case .gameFinished:
-            
             presentFinishedAlert(title: "Game over", message: "You got \(viewmodel.score) out of \(viewmodel.numberOfQuestions) questions correct")
         }
         userAnswer = ""
