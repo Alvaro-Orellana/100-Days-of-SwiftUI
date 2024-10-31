@@ -7,53 +7,23 @@
 
 import SwiftUI
 
-
-struct ExpenseItem: Identifiable, Codable {
-    private(set) var id = UUID()
-    let name: String
-    let type: String
-    let amount: Double
-}
-
-@Observable
-class Expenses {
-    
-    var items: [ExpenseItem]
-    
-    init() {
-        // Load from user defaults..
-        guard
-            let data = UserDefaults.standard.data(forKey: "expenses"),
-            let decoded = try? JSONDecoder().decode([ExpenseItem].self, from: data)
-        else {
-            items = []
-            return
-        }
-        self.items = decoded
-    }
-    
-    deinit {
-        // Save to user defaults
-        if let enconded = try? JSONEncoder().encode(items) {
-            UserDefaults.standard.set(enconded, forKey: "expenses")
-        }
-    }
-    
-}
-
 struct ContentView: View {
     
-    @State var expenses = Expenses()
+    @State var expensesViewModel = Expenses()
     @State var showAddView = false
     
     var body: some View {
         NavigationStack {
             List {
-                ForEach(expenses.items) { expense in
-                    Text("\(expense.name) \(expense.type) \(expense.amount)")
-                }
-                .onDelete { indexSet in
-                    expenses.items.remove(atOffsets: indexSet)
+                ForEach(ExpenseItem.ExpenseType.allCases) { expenseType in
+                    Section(expenseType.rawValue) {
+                        ForEach(expensesViewModel.items.filter { $0.type == expenseType }) { expense in
+                            ExpenseRowView(expense: expense)
+                        }
+                        .onDelete { indexSet in
+                            expensesViewModel.removeItem(using: indexSet, of: expenseType)
+                        }
+                    }
                 }
             }
             .navigationTitle("IExpense")
@@ -63,12 +33,43 @@ struct ContentView: View {
                 }
             }
             .sheet(isPresented: $showAddView) {
-                AddView(expenses: expenses)
+                AddView(expenses: expensesViewModel)
             }
+        }
+    }
+
+}
+
+struct ExpenseRowView: View  {
+    
+    let expense: ExpenseItem
+    let preferedCurrrency = Locale.current.currency?.identifier ?? "USD"
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading) {
+                Text(expense.name)
+                    .font(.headline)
+                Text(expense.type.rawValue)
+            }
+            Spacer()
+            Text(expense.amount, format: .currency(code: preferedCurrrency))
+        }
+        .foregroundStyle(style(for: expense.amount))
+    }
+    
+    func style(for amount: Double) -> some ShapeStyle {
+        if amount < 10 {
+            Color.red
+        } else if amount < 100 {
+            Color.blue
+        } else {
+            Color.green
         }
     }
     
 }
+
 
 #Preview {
     ContentView()

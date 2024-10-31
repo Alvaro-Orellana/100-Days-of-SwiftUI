@@ -9,36 +9,41 @@ import SwiftUI
 
 struct AddView: View {
     
+    @Environment(\.dismiss) var dismiss
     @State var name: String = ""
-    @State var type: String = ""
+    @State var type: ExpenseItem.ExpenseType = .business
     @State var amount: Double = 0
-    let expenses: Expenses
     
-    let types = ["Business", "Personal"]
+    let expenses: Expenses
+    let preferedCurrency: String = Locale.current.currency?.identifier ?? "USD"
     
     var body: some View {
         NavigationStack {
             Form {
                 TextField("Name", text: $name)
+                
                 Picker("Type", selection: $type) {
-                    ForEach(types, id: \.self) { type in
-                        Text(type)
+                    ForEach(ExpenseItem.ExpenseType.allCases) { type in
+                        Text(type.rawValue)
                     }
                 }
-                TextField("Name", value: $amount, format: .currency(code: "USD"))
-                    .keyboardType(.numberPad)
+                .pickerStyle(.segmented)
                 
+                TextField("Name", value: $amount, format: .currency(code: preferedCurrency))
+                    .keyboardType(.numberPad)
             }
             .navigationTitle("Add Expense")
-            .onDisappear(perform: saveItem)
+            .toolbar {
+                Button("Done") {
+                    expenses.saveItem(name: self.name, type: self.type, amount: self.amount)
+                    dismiss()
+                }
+            }
         }
     }
     
-    func saveItem() {
-        expenses.items.append(ExpenseItem(name: name, type: type, amount: amount))
-    }
 }
 
 #Preview {
-//    AddView()
+    AddView(expenses: Expenses())
 }
